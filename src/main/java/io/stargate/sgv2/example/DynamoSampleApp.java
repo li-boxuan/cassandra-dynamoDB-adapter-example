@@ -29,17 +29,17 @@ public class DynamoSampleApp {
   private static String tableName = "crud_sample_table";
   private static final Logger LOGGER = LogManager.getLogger(DynamoSampleApp.class);
 
-  private static void queryIndex(DynamoDB dynamoDB) {
-    LOGGER.info("query index");
+  private static void queryItem(DynamoDB dynamoDB) {
+    LOGGER.info("query item");
     Table table = dynamoDB.getTable(tableName);
-    Index index = table.getIndex("Title-index");
     QuerySpec querySpec =
         new QuerySpec()
-            .withKeyConditionExpression("Title = :v")
-            .withValueMap(new ValueMap().withString(":v", "Book 120 Title"));
-    ItemCollection<QueryOutcome> items = index.query(querySpec);
-    Iterator<Item> iterator = items.iterator();
-    System.out.println(iterator.hasNext());
+            .withKeyConditionExpression("Id = :id AND sid >= :sid")
+            .withValueMap(new ValueMap().withNumber(":id", 120).withString(":sid", "sid000"));
+    Iterator<Item> iterator = table.query(querySpec).iterator();
+    while (iterator.hasNext()) {
+      LOGGER.info("Item result: {}", iterator.next());
+    }
   }
 
   private static void createTable(DynamoDB dynamoDB) {
@@ -75,7 +75,7 @@ public class DynamoSampleApp {
               .withPrimaryKey("Id", 120, "sid", "sid001")
               .withString("Title", "Book 120 Title")
               .withString("ISBN", "120-1111111111")
-              .withStringSet("Authors", new HashSet<String>(Arrays.asList("Author12", "Author22")))
+              .withStringSet("Authors", new HashSet<>(Arrays.asList("Author12", "Author22")))
               .withNumber("Price", 20)
               .withString("Dimensions", "8.5x11.0x.75")
               .withNumber("PageCount", 500)
@@ -86,9 +86,9 @@ public class DynamoSampleApp {
       item =
           new Item()
               .withPrimaryKey("Id", 121, "sid", "sid002")
-              .withNumber("Title", 123)
+              .withString("Title", "Book 121 Title")
               .withString("ISBN", "121-1111111111")
-              .withStringSet("Authors", new HashSet<String>(Arrays.asList("Author21", "Author 22")))
+              .withStringSet("Authors", new HashSet<>(Arrays.asList("Author21", "Author 22")))
               .withNumber("Price", 20)
               .withString("Dimensions", "8.5x11.0x.75")
               .withNumber("PageCount", 500)
@@ -118,7 +118,7 @@ public class DynamoSampleApp {
 
   public static void main(String[] args) {
     LOGGER.info("start");
-    AmazonDynamoDB client = getClientWithCassandra("6b8e43ff-d611-4de5-aa20-79db68c47759");
+    AmazonDynamoDB client = getClientWithCassandra("b944dfec-ecbe-4dbc-aadd-fdb0fafc2258");
     ListTablesResult tables = client.listTables();
     if (tables.getTableNames() != null && tables.getTableNames().contains(tableName)) {
       deleteTable(client);
@@ -127,6 +127,6 @@ public class DynamoSampleApp {
     createTable(dynamoDB);
     LOGGER.info("tables are {}", client.listTables());
     putSimpleItem(dynamoDB);
-    queryIndex(dynamoDB);
+    queryItem(dynamoDB);
   }
 }
