@@ -52,8 +52,8 @@ public class DynamoSampleApp {
             .withTableName(tableName)
             .withProvisionedThroughput(
                 new ProvisionedThroughput()
-                    .withReadCapacityUnits(100L)
-                    .withWriteCapacityUnits(100L))
+                    .withReadCapacityUnits(1L)
+                    .withWriteCapacityUnits(1L))
             .withKeySchema(
                 new KeySchemaElement("Id", KeyType.HASH),
                 new KeySchemaElement("sid", KeyType.RANGE))
