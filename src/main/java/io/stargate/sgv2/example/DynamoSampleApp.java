@@ -14,6 +14,9 @@ import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -68,6 +71,8 @@ public class DynamoSampleApp {
   private static void putSimpleItem(DynamoDB dynamoDB) {
     LOGGER.info("Put an item to table {}", tableName);
     Table table = dynamoDB.getTable(tableName);
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime now = LocalDateTime.now();
     try {
 
       Item item =
@@ -75,6 +80,7 @@ public class DynamoSampleApp {
               .withPrimaryKey("Id", 120, "sid", "sid001")
               .withString("Title", "Book 120 Title")
               .withString("ISBN", "120-1111111111")
+              .withString("UpdateTime", dtf.format(now))
               .withStringSet("Authors", new HashSet<>(Arrays.asList("Author12", "Author22")))
               .withNumber("Price", 20)
               .withString("Dimensions", "8.5x11.0x.75")
@@ -89,6 +95,7 @@ public class DynamoSampleApp {
               .withString("Title", "Book 121 Title")
               .withString("ISBN", "121-1111111111")
               .withStringSet("Authors", new HashSet<>(Arrays.asList("Author21", "Author 22")))
+              .withString("UpdateTime", dtf.format(now))
               .withNumber("Price", 20)
               .withString("Dimensions", "8.5x11.0x.75")
               .withNumber("PageCount", 500)
@@ -122,11 +129,13 @@ public class DynamoSampleApp {
     if (args.length > 0) {
       // use Stargate - Cassandra proxy
       // first argument must be the address of the proxy
+      LOGGER.info("Connecting to Stargate...");
       client = AmazonDynamoDBClientBuilder.standard()
-          .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(args[0], ""))
+          .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(args[0], "dummy"))
           .build();
     } else {
       // use AWS - DynamoDB
+      LOGGER.info("Connecting to Amazon DynamoDB...");
       client = AmazonDynamoDBClientBuilder.standard().build();
     }
 
