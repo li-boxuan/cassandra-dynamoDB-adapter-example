@@ -116,15 +116,28 @@ public class DynamoSampleApp {
     return AmazonDynamoDBClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
   }
 
-  public static void main(String[] args) {
-    LOGGER.info("start");
-    AmazonDynamoDB client = getClientWithCassandra("b944dfec-ecbe-4dbc-aadd-fdb0fafc2258");
+  public static void main(String[] args) throws InterruptedException {
+    LOGGER.info("start, initialize DynamoDB client");
+    AmazonDynamoDB client;
+    if (args.length > 0) {
+      // use Stargate - Cassandra
+      client = AmazonDynamoDBClientBuilder.standard()
+          .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8082/v2", ""))
+          .build();
+    } else {
+      // use AWS - DynamoDB
+      client = AmazonDynamoDBClientBuilder.standard().build();
+    }
+
+    DynamoDB dynamoDB = new DynamoDB(client);
     ListTablesResult tables = client.listTables();
     if (tables.getTableNames() != null && tables.getTableNames().contains(tableName)) {
-      deleteTable(client);
+      LOGGER.info("Table already exists, skip table creation");
+    } else {
+      createTable(dynamoDB);
+      LOGGER.info("Sleep for 10 seconds to wait for on-demand table to be created");
+      Thread.sleep(10000);
     }
-    DynamoDB dynamoDB = new DynamoDB(client);
-    createTable(dynamoDB);
     LOGGER.info("tables are {}", client.listTables());
     putSimpleItem(dynamoDB);
     queryItem(dynamoDB);
