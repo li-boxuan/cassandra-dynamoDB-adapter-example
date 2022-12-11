@@ -120,9 +120,10 @@ public class DynamoSampleApp {
     LOGGER.info("start, initialize DynamoDB client");
     AmazonDynamoDB client;
     if (args.length > 0) {
-      // use Stargate - Cassandra
+      // use Stargate - Cassandra proxy
+      // first argument must be the address of the proxy
       client = AmazonDynamoDBClientBuilder.standard()
-          .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8082/v2", ""))
+          .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(args[0], ""))
           .build();
     } else {
       // use AWS - DynamoDB
